@@ -10,15 +10,15 @@ class Field:
 
 
 class Name(Field):
-    """Клас для зберігання імені контакту, наслідується від Field."""
+    """Клас для зберігання імені контакту, успадковує Field."""
     pass
 
 
 class Phone(Field):
-    """Клас для зберігання і валідації номера телефону, наслідується від Field."""
+    """Клас для зберігання і валідації номера телефону, успадковує Field."""
     def __init__(self, value):
         if not self.is_valid_phone(value):
-            raise ValueError("Невірний формат номера телефону. Повинно бути 10 цифр.")
+            raise ValueError
         super().__init__(value)
 
     @staticmethod
@@ -27,7 +27,7 @@ class Phone(Field):
 
 
 class Record:
-    """Клас для зберігання імені контакту та списку телефонних номерів."""
+    """Клас для зберігання імені контакту та списку телефонів."""
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
@@ -35,41 +35,43 @@ class Record:
     def add_phone(self, phone):
         """Додає телефон до запису."""
         self.phones.append(Phone(phone))
+        return self
 
     def remove_phone(self, phone):
-        """Видаляє телефон із запису."""
+        """Видаляє телефон з запису."""
         for p in self.phones:
             if p.value == phone:
                 self.phones.remove(p)
-                return f"Телефон {phone} видалено."
-        return "Телефон не знайдено."
+                return self
+        return None
 
     def edit_phone(self, old_phone, new_phone):
-        """Редагує телефон у записі."""
+        """Редагує телефон у записі. ValueError, якщо старий номер не знайдено."""
         for i, p in enumerate(self.phones):
             if p.value == old_phone:
                 self.phones[i] = Phone(new_phone)
-                return f"Телефон {old_phone} оновлено на {new_phone}."
-        return "Старий номер телефону не знайдено."
+                return self
+        raise ValueError
 
     def find_phone(self, phone):
-        """Шукає телефон у записі."""
+        """Знаходить телефон у записі."""
         for p in self.phones:
             if p.value == phone:
                 return p
         return None
 
     def __str__(self):
-        """Користувацьке рядкове представлення запису."""
+        """Кастомне строкове представлення запису."""
         phones_str = '; '.join(p.value for p in self.phones)
         return f"Ім'я контакту: {self.name.value}, телефони: {phones_str}"
 
 
 class AddressBook(UserDict):
-    """Клас для зберігання та управління контактними записами."""
+    """Клас для зберігання та управління записами контактів."""
     def add_record(self, record):
         """Додає запис до адресної книги."""
         self.data[record.name.value] = record
+        return record
 
     def find(self, name):
         """Знаходить запис за іменем."""
@@ -78,15 +80,14 @@ class AddressBook(UserDict):
     def delete(self, name):
         """Видаляє запис за іменем."""
         if name in self.data:
+            record = self.data[name]
             del self.data[name]
-            return f"Запис для {name} видалено."
-        return "Запис не знайдено."
+            return record
+        raise ValueError
 
     def __str__(self):
-        """Користувацьке рядкове представлення адресної книги."""
+        """Кастомне строкове представлення адресної книги."""
         result = ""
         for record in self.data.values():
             result += str(record) + "\n"
         return result.strip()
-
-
